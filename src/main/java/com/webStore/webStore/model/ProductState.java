@@ -1,5 +1,17 @@
 package com.webStore.webStore.model;
 
 public enum ProductState {
-    SOLD, IN_STORE
+    SOLD {
+        @Override
+        boolean buyProduct() {
+            return false;
+        }
+    }, IN_STORE {
+        @Override
+        boolean buyProduct() {
+            return true;
+        }
+    };
+
+    abstract boolean buyProduct();
 }

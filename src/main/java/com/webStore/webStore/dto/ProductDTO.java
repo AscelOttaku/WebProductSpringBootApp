@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class ProductDTO {
-    private Long id;
     private String name;
     private double price;
     private ProductState productState;
