@@ -1,7 +1,7 @@
 package com.webStore.webStore.controller;
 
 import com.webStore.webStore.dto.ProductDTO;
-import com.webStore.webStore.service.ProductService;
+import com.webStore.webStore.service.IProductService.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,5 +67,33 @@ public class ProductController {
     @PutMapping("/updateProduct")
     public void updateProduct(@RequestBody ProductDTO productDTO) {
         productService.updateProduct(productDTO);
+    }
+
+    @DeleteMapping("/deleteProduct/{id}")
+    public void deleteProductById(@PathVariable long id) {
+        productService.deleteProductById(id);
+    }
+
+    @DeleteMapping("/deleteProduct")
+    public void deleteProduct(@RequestBody ProductDTO productDTO) {
+        productService.deleteProduct(productDTO);
+    }
+
+    @GetMapping("/findProductByName")
+    public ProductDTO findProductByName(@RequestParam String productName) {
+        var productDTO = productService.findProductByProductNameIgnoreCase(productName);
+        return productDTO.orElse(null);
+    }
+
+    @GetMapping("/findMostPopularProductByYear/{productYear}")
+    public ProductDTO findMostPopularProductByYear(@PathVariable int productYear) {
+        var productDTO = productService.findMostPopularProductByYear(productYear);
+        return productDTO.orElse(null);
+    }
+
+    @GetMapping("/findMostPopularProductByMonth/{productMonth}")
+    public ProductDTO findMostPopularProductByMonth(@PathVariable int productMonth) {
+        var productDTO = productService.findMostPopularProductByMonth(productMonth);
+        return productDTO.orElse(null);
     }
 }

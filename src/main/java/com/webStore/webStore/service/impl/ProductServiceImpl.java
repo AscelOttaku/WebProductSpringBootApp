@@ -4,17 +4,22 @@ import com.webStore.webStore.dto.ProductDTO;
 import com.webStore.webStore.model.Product;
 import com.webStore.webStore.model.ProductState;
 import com.webStore.webStore.repository.ProductRepository;
-import com.webStore.webStore.service.ProductService;
+import com.webStore.webStore.service.IProductService.ProductService;
+import com.webStore.webStore.service.helper.SearchForProductByDate;
+import com.webStore.webStore.service.serviceMapperDTO.ProductMapperDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.counting;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -28,18 +33,19 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @Override
     public void addProduct(ProductDTO productDTO) {
-        productRepository.save(mapProductDTOToProduct(productDTO));
+        productRepository.save(ProductMapperDTO.mapProductDTOToProduct(productDTO));
     }
 
     @Transactional
     @Override
     public void updateProduct(ProductDTO productDTO) {
-        productRepository.saveAndFlush(mapProductDTOToProduct(productDTO));
+        productRepository.saveAndFlush(ProductMapperDTO.mapProductDTOToProduct(productDTO));
     }
 
+    @Transactional
     @Override
     public void deleteProduct(ProductDTO productDTO) {
-        productRepository.delete(mapProductDTOToProduct(productDTO));
+        productRepository.delete(ProductMapperDTO.mapProductDTOToProduct(productDTO));
     }
 
     @Override
@@ -47,12 +53,12 @@ public class ProductServiceImpl implements ProductService {
         var products = productRepository.findAll();
 
         var mostPopularProduct = products.stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .collect(Collectors.groupingBy(Function.identity(), counting()))
                 .entrySet().stream()
                 .max(Map.Entry.<Product, Long>comparingByValue()
                         .thenComparingDouble(entry -> entry.getKey().getPrice()));
 
-        return mostPopularProduct.map(productLongEntry -> mapToProductDTO(productLongEntry.getKey()));
+        return mostPopularProduct.map(productLongEntry -> ProductMapperDTO.mapToProductDTO(productLongEntry.getKey()));
     }
 
     @Override
@@ -60,29 +66,29 @@ public class ProductServiceImpl implements ProductService {
         var products = productRepository.findAll();
 
         var mostUnpopularProduct = products.stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .collect(Collectors.groupingBy(Function.identity(), counting()))
                 .entrySet().stream()
                 .min(Map.Entry.<Product, Long>comparingByValue()
                         .thenComparingDouble(entry -> entry.getKey().getPrice()));
 
-        return mostUnpopularProduct.map(productLongEntry -> mapToProductDTO(productLongEntry.getKey()));
+        return mostUnpopularProduct.map(productLongEntry -> ProductMapperDTO.mapToProductDTO(productLongEntry.getKey()));
     }
 
     @Override
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll().stream()
-                .map(this::mapToProductDTO)
+                .map(ProductMapperDTO::mapToProductDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<ProductDTO> getProductById(long id) {
-        return Optional.ofNullable(mapToProductDTO(productRepository.getProductById(id)));
+        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.getProductById(id)));
     }
 
     @Override
     public Optional<ProductDTO> findProductByArrivedProductDate(LocalDateTime localDateTime) {
-        return Optional.ofNullable(mapToProductDTO(productRepository.findProductByArrivedAtStoreTime(localDateTime)));
+        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findProductByArrivedAtStoreTime(localDateTime)));
     }
 
     @Override
@@ -95,26 +101,28 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Optional<ProductDTO> findProductByProductBySoldDate(LocalDateTime localDateTime) {
-        return Optional.ofNullable(mapToProductDTO(productRepository.findProductBySoldAtStoreTime(localDateTime)));
+        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findProductBySoldAtStoreTime(localDateTime)));
     }
 
-    private Product mapProductDTOToProduct(ProductDTO productDTO) {
-        return Product.builder()
-                .name(productDTO.getName())
-                .price(productDTO.getPrice())
-                .productState(productDTO.getProductState())
-                .arrivedAtStoreTime(productDTO.getArrivedAtStoreTime())
-                .soldAtStoreTime(productDTO.getSoldAtStoreTime())
-                .build();
+    @Override
+    public void deleteProductById(long id) {
+        productRepository.deleteById(id);
     }
 
-    private ProductDTO mapToProductDTO(Product product) {
-        return ProductDTO.builder()
-                .name(product.getName())
-                .price(product.getPrice())
-                .productState(product.getProductState())
-                .arrivedAtStoreTime(product.getArrivedAtStoreTime())
-                .soldAtStoreTime(product.getSoldAtStoreTime())
-                .build();
+    @Override
+    public Optional<ProductDTO> findProductByProductNameIgnoreCase(String productName) {
+        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findByNameIgnoreCase(productName)));
+    }
+
+    @Override
+    public Optional<ProductDTO> findMostPopularProductByYear(int year) {
+        var products = productRepository.findAll();
+        return SearchForProductByDate.YEAR.findMostPopularProductByDate(year, products);
+    }
+
+    @Override
+    public Optional<ProductDTO> findMostPopularProductByMonth(int month) {
+        var products = productRepository.findAll();
+        return SearchForProductByDate.MONTH.findMostPopularProductByDate(month, products);
     }
 }

@@ -18,6 +18,7 @@ public class Product {
     private Long id;
     private String name;
     private double price;
+    private String photoUrl;
     @Enumerated(EnumType.STRING)
     private final ProductState productState;
     private LocalDateTime arrivedAtStoreTime;

@@ -9,8 +9,10 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class ProductDTO {
+    private long id;
     private String name;
     private double price;
+    private String photoUrl;
     private ProductState productState;
     private LocalDateTime arrivedAtStoreTime;
     private LocalDateTime soldAtStoreTime;
