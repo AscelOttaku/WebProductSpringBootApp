@@ -83,7 +83,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Optional<ProductDTO> getProductById(long id) {
-        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.getProductById(id)));
+        var product = productRepository.findById(id);
+        return product.map(ProductMapperDTO::mapToProductDTO);
     }
 
     @Override
@@ -116,13 +117,31 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Optional<ProductDTO> findMostPopularProductByYear(int year) {
-        var products = productRepository.findAll();
-        return SearchForProductByDate.YEAR.findMostPopularProductByDate(year, products);
+        return SearchForProductByDate.YEAR.findMostPopularProductByDate(year, productRepository.findAll());
     }
 
     @Override
     public Optional<ProductDTO> findMostPopularProductByMonth(int month) {
-        var products = productRepository.findAll();
-        return SearchForProductByDate.MONTH.findMostPopularProductByDate(month, products);
+        return SearchForProductByDate.MONTH.findMostPopularProductByDate(month, productRepository.findAll());
+    }
+
+    @Override
+    public Optional<ProductDTO> findMostUnPopularProductByYear(int year) {
+        return SearchForProductByDate.YEAR.findMostUnpopularProductByDate(year, productRepository.findAll());
+    }
+
+    @Override
+    public Optional<ProductDTO> findMostUnPopularProductByMonth(int month) {
+        return SearchForProductByDate.MONTH.findMostUnpopularProductByDate(month, productRepository.findAll());
+    }
+
+    @Override
+    public Optional<ProductDTO> findMostPopularProductByDay(int day) {
+        return SearchForProductByDate.DAY.findMostPopularProductByDate(day, productRepository.findAll());
+    }
+
+    @Override
+    public Optional<ProductDTO> findMostUnPopularProductByDay(int day) {
+        return SearchForProductByDate.DAY.findMostUnpopularProductByDate(day, productRepository.findAll());
     }
 }

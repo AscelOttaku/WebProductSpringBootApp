@@ -96,4 +96,28 @@ public class ProductController {
         var productDTO = productService.findMostPopularProductByMonth(productMonth);
         return productDTO.orElse(null);
     }
+
+    @GetMapping("/findMostUnPopularProductByYear/{productYear}")
+    public ProductDTO findMostUnPopularProductByYear(@PathVariable int productYear) {
+        var productDTO = productService.findMostUnPopularProductByYear(productYear);
+        return productDTO.orElse(null);
+    }
+
+    @GetMapping("/findMostUnpopularProductByMonth/{productMonth}")
+    public ProductDTO findMostUnpopularProductByMonth(@PathVariable int productMonth) {
+        var productDTO = productService.findMostUnPopularProductByMonth(productMonth);
+        return productDTO.orElse(null);
+    }
+
+    @GetMapping("/findMostPopularProductByDay/{productDay}")
+    public ProductDTO findMostPopularProductByDay(@PathVariable int productDay) {
+        var productDTO = productService.findMostPopularProductByDay(productDay);
+        return productDTO.orElse(null);
+    }
+
+    @GetMapping("/findMostUnpopularPopularProductByDay/{productDay}")
+    public ProductDTO findMostUnPopularProductByDay(@PathVariable int productDay) {
+        var productDTO = productService.findMostUnPopularProductByDay(productDay);
+        return productDTO.orElse(null);
+    }
 }
