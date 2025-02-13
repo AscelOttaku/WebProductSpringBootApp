@@ -18,6 +18,7 @@ public class ProductDTO {
     @PositiveOrZero(message = "Filed name price should be positive")
     private double price;
     private String photoUrl;
+    @NotNull
     private ProductState productState;
     @NotNull
     @Past(message = "Field name arrivedStoreTime should be in past")

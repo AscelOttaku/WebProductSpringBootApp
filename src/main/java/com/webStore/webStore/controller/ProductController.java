@@ -162,4 +162,16 @@ public class ProductController {
         var productDTO = productService.findMostUnPopularProductByDay(productDay);
         return getProductDTOResponseEntity(productDTO);
     }
+
+    @PatchMapping("/updateProductState/{productId}")
+    public ResponseEntity<String> updateProductState(@PathVariable long productId) {
+        try {
+            if (productService.buy(productId))
+                return new ResponseEntity<>("Product is updated", HttpStatus.OK);
+            else
+                return new ResponseEntity<>("Product is already sold", HttpStatus.OK);
+        } catch (ProductNotFound productNotFound) {
+            return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
 }

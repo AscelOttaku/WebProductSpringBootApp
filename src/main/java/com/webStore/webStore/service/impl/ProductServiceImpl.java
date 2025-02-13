@@ -35,12 +35,13 @@ public class ProductServiceImpl implements ProductService {
     public void addProduct(ProductDTO productDTO) {
         if (checkForDate(productDTO))
             productRepository.save(ProductMapperDTO.mapProductDTOToProduct(productDTO));
-
-        throw new IllegalArgumentException("Product Arrived Date cannot be equals or after Sold Date");
+        else
+            throw new IllegalArgumentException("Product Arrived Date cannot be equals or after Sold Date");
     }
 
     private boolean checkForDate(ProductDTO productDTO) {
-        return productDTO.getArrivedAtStoreTime().isBefore(productDTO.getSoldAtStoreTime());
+        return productDTO.getSoldAtStoreTime() == null ||
+                productDTO.getArrivedAtStoreTime().isBefore(productDTO.getSoldAtStoreTime());
     }
 
     @Transactional
@@ -128,6 +129,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Optional<ProductDTO> findProductById(long id) {
+        var productOptional = productRepository.findById(id);
+        return productOptional.map(ProductMapperDTO::mapToProductDTO);
+    }
+
+    @Override
     public Optional<ProductDTO> findProductByProductNameIgnoreCase(String productName) {
         return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findByNameIgnoreCase(productName)));
     }
@@ -160,5 +167,21 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Optional<ProductDTO> findMostUnPopularProductByDay(int day) {
         return SearchForProductByDate.DAY.findMostUnpopularProductByDate(day, productRepository.findAll());
+    }
+
+    @Override
+    public boolean buy(long id) {
+        Optional<Product> product = productRepository.findById(id);
+
+        if (product.isEmpty())
+            throw new ProductNotFound("Product not found");
+
+        if (!product.get().getProductState().equals(ProductState.SOLD)) {
+            Product getProduct = product.get();
+            getProduct.getProductState().buyProduct(getProduct);
+            productRepository.save(getProduct);
+            return true;
+        }
+        return false;
     }
 }

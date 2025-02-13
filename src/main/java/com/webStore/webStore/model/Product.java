@@ -13,7 +13,6 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 @Builder
 @AllArgsConstructor
 public class Product {
@@ -24,7 +23,7 @@ public class Product {
     private double price;
     private String photoUrl;
     @Enumerated(EnumType.STRING)
-    private final ProductState productState;
+    private ProductState productState;
     private LocalDateTime arrivedAtStoreTime;
     private LocalDateTime soldAtStoreTime;
     @Transient

@@ -6,7 +6,6 @@ import com.webStore.webStore.model.Product;
 public class ProductMapperDTO {
     public static Product mapProductDTOToProduct(ProductDTO productDTO) {
         return Product.builder()
-                .id(productDTO.getId())
                 .name(productDTO.getName())
                 .price(productDTO.getPrice())
                 .photoUrl(productDTO.getPhotoUrl())
