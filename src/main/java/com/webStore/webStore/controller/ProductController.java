@@ -1,12 +1,18 @@
 package com.webStore.webStore.controller;
 
 import com.webStore.webStore.dto.ProductDTO;
+import com.webStore.webStore.exceptions.ProductNotFound;
 import com.webStore.webStore.service.IProductService.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/store")
@@ -19,38 +25,59 @@ public class ProductController {
     }
 
     @GetMapping("/getProductById/{productId}")
-    public ProductDTO getProductById(@PathVariable long productId) {
+    public ResponseEntity<?> getProductById(@PathVariable long productId) {
         var productDTO = productService.getProductById(productId);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO, productId);
+    }
+
+    private static ResponseEntity<ProductDTO> getProductDTOResponseEntity(Optional<ProductDTO> productDTO) {
+        return productDTO.map(product -> new ResponseEntity<>(product, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    private static ResponseEntity<?> getProductDTOResponseEntity(Optional<ProductDTO> productDTO, long id) {
+        if (productDTO.isPresent())
+            return new ResponseEntity<>(productDTO.get(), HttpStatus.OK);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("find Product Request By Id", "Product with id " + id + " not found");
+        return new ResponseEntity<>(headers, HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/addProduct")
-    public ProductDTO addProduct(@RequestBody ProductDTO productDTO) {
-        productService.addProduct(productDTO);
-        return productDTO;
+    public ResponseEntity<?> addProduct(@RequestBody @Valid ProductDTO productDTO) {
+        try {
+            productService.addProduct(productDTO);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @GetMapping("/findMostPopularProduct")
-    public ProductDTO findMostPopularProduct() {
+    public ResponseEntity<ProductDTO> findMostPopularProduct() {
         var productDTO = productService.findMostPopularProduct();
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/findMostUnpopularProduct")
-    public ProductDTO findMostUnpopularProduct() {
+    public ResponseEntity<ProductDTO> findMostUnpopularProduct() {
         var productDTO = productService.findMostUnpopularProduct();
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/getAllProducts")
-    public List<ProductDTO> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
+        var productsDTO = productService.getAllProducts();
+
+        return productsDTO.map(productDTOS -> new ResponseEntity<>(productDTOS, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @GetMapping("/findProductByArrivedDate/{arrivedDateTime}")
-    public ProductDTO findProductArrivedByDate(@PathVariable LocalDateTime arrivedDateTime) {
+    public ResponseEntity<ProductDTO> findProductArrivedByDate(@PathVariable LocalDateTime arrivedDateTime) {
         var productDTO = productService.findProductByArrivedProductDate(arrivedDateTime);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/getTotalSumOfSoldProducts")
@@ -59,65 +86,80 @@ public class ProductController {
     }
 
     @GetMapping("/findProductBySoldDate/{soldDateTime}")
-    public ProductDTO findProductBySoldDate(@PathVariable LocalDateTime soldDateTime) {
+    public ResponseEntity<ProductDTO> findProductBySoldDate(@PathVariable LocalDateTime soldDateTime) {
         var productDTO = productService.findProductByProductBySoldDate(soldDateTime);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @PutMapping("/updateProduct")
-    public void updateProduct(@RequestBody ProductDTO productDTO) {
-        productService.updateProduct(productDTO);
+    public ResponseEntity<String> updateProduct(@RequestBody @Valid ProductDTO productDTO) {
+        try {
+            productService.updateProduct(productDTO);
+        } catch (ProductNotFound productNotFound) {
+            return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/deleteProduct/{id}")
-    public void deleteProductById(@PathVariable long id) {
-        productService.deleteProductById(id);
+    public ResponseEntity<String> deleteProductById(@PathVariable long id) {
+       try {
+           productService.deleteProductById(id);
+       } catch (ProductNotFound productNotFound) {
+           return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
+       }
+       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/deleteProduct")
-    public void deleteProduct(@RequestBody ProductDTO productDTO) {
-        productService.deleteProduct(productDTO);
+    public ResponseEntity<String> deleteProduct(@RequestBody @Valid ProductDTO productDTO) {
+        try {
+            productService.deleteProduct(productDTO);
+        } catch (ProductNotFound productNotFound) {
+            return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/findProductByName")
-    public ProductDTO findProductByName(@RequestParam String productName) {
+    public ResponseEntity<ProductDTO> findProductByName(@RequestParam String productName) {
         var productDTO = productService.findProductByProductNameIgnoreCase(productName);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/findMostPopularProductByYear/{productYear}")
-    public ProductDTO findMostPopularProductByYear(@PathVariable int productYear) {
+    public ResponseEntity<ProductDTO> findMostPopularProductByYear(@PathVariable int productYear) {
         var productDTO = productService.findMostPopularProductByYear(productYear);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/findMostPopularProductByMonth/{productMonth}")
-    public ProductDTO findMostPopularProductByMonth(@PathVariable int productMonth) {
+    public ResponseEntity<ProductDTO> findMostPopularProductByMonth(@PathVariable int productMonth) {
         var productDTO = productService.findMostPopularProductByMonth(productMonth);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/findMostUnPopularProductByYear/{productYear}")
-    public ProductDTO findMostUnPopularProductByYear(@PathVariable int productYear) {
+    public ResponseEntity<ProductDTO> findMostUnPopularProductByYear(@PathVariable int productYear) {
         var productDTO = productService.findMostUnPopularProductByYear(productYear);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/findMostUnpopularProductByMonth/{productMonth}")
-    public ProductDTO findMostUnpopularProductByMonth(@PathVariable int productMonth) {
+    public ResponseEntity<ProductDTO> findMostUnpopularProductByMonth(@PathVariable int productMonth) {
         var productDTO = productService.findMostUnPopularProductByMonth(productMonth);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/findMostPopularProductByDay/{productDay}")
-    public ProductDTO findMostPopularProductByDay(@PathVariable int productDay) {
+    public ResponseEntity<ProductDTO> findMostPopularProductByDay(@PathVariable int productDay) {
         var productDTO = productService.findMostPopularProductByDay(productDay);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 
     @GetMapping("/findMostUnpopularPopularProductByDay/{productDay}")
-    public ProductDTO findMostUnPopularProductByDay(@PathVariable int productDay) {
+    public ResponseEntity<ProductDTO> findMostUnPopularProductByDay(@PathVariable int productDay) {
         var productDTO = productService.findMostUnPopularProductByDay(productDay);
-        return productDTO.orElse(null);
+        return getProductDTOResponseEntity(productDTO);
     }
 }

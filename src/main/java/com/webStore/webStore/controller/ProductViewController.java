@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/productPage")
@@ -22,7 +23,7 @@ public class ProductViewController {
 
     @GetMapping("/getAllTheProductsByPage")
     public String getAllTheProductsByPage(Model model) {
-        List<ProductDTO> productDTOS = productService.getAllProducts();
+        Optional<List<ProductDTO>> productDTOS = productService.getAllProducts();
         model.addAttribute("products", productDTOS);
         return "products-list";
     }

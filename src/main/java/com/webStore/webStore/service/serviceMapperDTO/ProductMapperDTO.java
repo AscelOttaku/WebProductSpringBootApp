@@ -25,6 +25,9 @@ public class ProductMapperDTO {
                 .productState(product.getProductState())
                 .arrivedAtStoreTime(product.getArrivedAtStoreTime())
                 .soldAtStoreTime(product.getSoldAtStoreTime())
-                .build();
+                .build()
+                .setProductTimeSpentInStoreDate(product.getProductTimeSpentInStore().getYears(),
+                        product.getProductTimeSpentInStore().getMonths(),
+                        product.getProductTimeSpentInStore().getDays());
     }
 }

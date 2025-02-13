@@ -1,6 +1,7 @@
 package com.webStore.webStore.service.impl;
 
 import com.webStore.webStore.dto.ProductDTO;
+import com.webStore.webStore.exceptions.ProductNotFound;
 import com.webStore.webStore.model.Product;
 import com.webStore.webStore.model.ProductState;
 import com.webStore.webStore.repository.ProductRepository;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,19 +33,35 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @Override
     public void addProduct(ProductDTO productDTO) {
-        productRepository.save(ProductMapperDTO.mapProductDTOToProduct(productDTO));
+        if (checkForDate(productDTO))
+            productRepository.save(ProductMapperDTO.mapProductDTOToProduct(productDTO));
+
+        throw new IllegalArgumentException("Product Arrived Date cannot be equals or after Sold Date");
+    }
+
+    private boolean checkForDate(ProductDTO productDTO) {
+        return productDTO.getArrivedAtStoreTime().isBefore(productDTO.getSoldAtStoreTime());
     }
 
     @Transactional
     @Override
     public void updateProduct(ProductDTO productDTO) {
-        productRepository.saveAndFlush(ProductMapperDTO.mapProductDTOToProduct(productDTO));
+        productIsNotFound(productDTO.getId());
+        productRepository.save(ProductMapperDTO.mapProductDTOToProduct(productDTO));
     }
 
     @Transactional
     @Override
     public void deleteProduct(ProductDTO productDTO) {
+        productIsNotFound(productDTO.getId());
         productRepository.delete(ProductMapperDTO.mapProductDTOToProduct(productDTO));
+    }
+
+    private void productIsNotFound(long id) {
+        Optional<Product> product = productRepository.findById(id);
+
+        if (product.isEmpty())
+            throw new ProductNotFound("Product by id " + id + " is not found");
     }
 
     @Override
@@ -75,10 +91,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
+    public Optional<List<ProductDTO>> getAllProducts() {
+        return Optional.of(productRepository.findAll().stream()
                 .map(ProductMapperDTO::mapToProductDTO)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -106,7 +122,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteProductById(long id) {
+    public void deleteProductById(long id) throws ProductNotFound {
+        productIsNotFound(id);
         productRepository.deleteById(id);
     }
 
