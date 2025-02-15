@@ -2,6 +2,7 @@ package com.webStore.webStore.dto;
 
 import com.webStore.webStore.model.ProductSpentTimeInStoreDate;
 import com.webStore.webStore.model.ProductState;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class ProductDTO {
     private LocalDateTime arrivedAtStoreTime;
     @PastOrPresent(message = "Field name soldAtStoreTime should be in past or present")
     private LocalDateTime soldAtStoreTime;
+    @Transient
     private ProductSpentTimeInStoreDate productSpentTimeInStoreDate;
 
     public ProductDTO setProductTimeSpentInStoreDate(int year, int month, int day) {

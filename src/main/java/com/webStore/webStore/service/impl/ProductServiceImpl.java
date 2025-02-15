@@ -1,11 +1,12 @@
 package com.webStore.webStore.service.impl;
 
 import com.webStore.webStore.dto.ProductDTO;
-import com.webStore.webStore.exceptions.ProductNotFound;
+import com.webStore.webStore.exceptions.ProductNotFoundException;
 import com.webStore.webStore.model.Product;
 import com.webStore.webStore.model.ProductState;
 import com.webStore.webStore.repository.ProductRepository;
 import com.webStore.webStore.service.IProductService.ProductService;
+import com.webStore.webStore.service.IProductService.SearchForProductsByDate;
 import com.webStore.webStore.service.helper.SearchForProductByDate;
 import com.webStore.webStore.service.serviceMapperDTO.ProductMapperDTO;
 import jakarta.transaction.Transactional;
@@ -62,51 +63,58 @@ public class ProductServiceImpl implements ProductService {
         var product = productRepository.findById(id);
 
         if (product.isEmpty())
-            throw new ProductNotFound("Product by id " + id + " is not found");
+            throw new ProductNotFoundException("Product by id " + id + " is not found");
     }
 
     @Override
-    public Optional<ProductDTO> findMostPopularProduct() {
+    public ProductDTO findMostPopularProduct() {
         var products = productRepository.findAll();
 
-        var mostPopularProduct = products.stream()
+        return products.stream()
                 .collect(Collectors.groupingBy(Function.identity(), counting()))
                 .entrySet().stream()
                 .max(Map.Entry.<Product, Long>comparingByValue()
-                        .thenComparingDouble(entry -> entry.getKey().getPrice()));
-
-        return mostPopularProduct.map(productLongEntry -> ProductMapperDTO.mapToProductDTO(productLongEntry.getKey()));
+                        .thenComparingDouble(entry -> entry.getKey().getPrice()))
+                .map(entry -> ProductMapperDTO.mapToProductDTO(entry.getKey()))
+                .orElseThrow(() -> new ProductNotFoundException("No most popular product found"));
     }
 
     @Override
-    public Optional<ProductDTO> findMostUnpopularProduct() {
+    public ProductDTO findMostUnpopularProduct() {
         var products = productRepository.findAll();
 
-        var mostUnpopularProduct = products.stream()
+        return products.stream()
                 .collect(Collectors.groupingBy(Function.identity(), counting()))
                 .entrySet().stream()
                 .min(Map.Entry.<Product, Long>comparingByValue()
-                        .thenComparingDouble(entry -> entry.getKey().getPrice()));
-
-        return mostUnpopularProduct.map(productLongEntry -> ProductMapperDTO.mapToProductDTO(productLongEntry.getKey()));
+                        .thenComparingDouble(entry -> entry.getKey().getPrice()))
+                .map(entry -> ProductMapperDTO.mapToProductDTO(entry.getKey()))
+                .orElseThrow(() -> new ProductNotFoundException("No most unpopular product found"));
     }
 
     @Override
-    public Optional<List<ProductDTO>> getAllProducts() {
-        return Optional.of(productRepository.findAll().stream()
+    public List<ProductDTO> getAllProducts() {
+        var productList = productRepository.findAll().stream()
                 .map(ProductMapperDTO::mapToProductDTO)
-                .collect(Collectors.toList()));
+                .toList();
+
+        if (productList.isEmpty())
+            throw new ProductNotFoundException("No products found");
+
+        return productList;
     }
 
     @Override
-    public Optional<ProductDTO> getProductById(long id) {
+    public ProductDTO getProductById(long id) {
         var product = productRepository.findById(id);
-        return product.map(ProductMapperDTO::mapToProductDTO);
+        return ProductMapperDTO.mapToProductDTO(product.orElseThrow(() ->
+                new ProductNotFoundException("Product Not Found By Id Exception")));
     }
 
     @Override
-    public Optional<ProductDTO> findProductByArrivedProductDate(LocalDateTime localDateTime) {
-        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findProductByArrivedAtStoreTime(localDateTime)));
+    public ProductDTO findProductByArrivedProductDate(LocalDateTime localDateTime) {
+        return ProductMapperDTO.mapToProductDTO(productRepository.findProductByArrivedAtStoreTime(localDateTime)
+                .orElseThrow(() -> new ProductNotFoundException("Product Not Found By LocalDate Exception")));
     }
 
     @Override
@@ -118,60 +126,74 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Optional<ProductDTO> findProductByProductBySoldDate(LocalDateTime localDateTime) {
-        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findProductBySoldAtStoreTime(localDateTime)));
+    public ProductDTO findProductByProductSoldDate(LocalDateTime localDateTime) {
+        return ProductMapperDTO.mapToProductDTO(productRepository.findProductBySoldAtStoreTime(localDateTime)
+                .orElseThrow(() -> new ProductNotFoundException("Product Not Found By LocalDateTime Exception")));
     }
 
     @Override
-    public void deleteProductById(long id) throws ProductNotFound {
+    public void deleteProductById(long id) throws ProductNotFoundException {
         productIsNotFound(id);
         productRepository.deleteById(id);
     }
 
     @Override
-    public Optional<ProductDTO> findProductById(long id) {
+    public ProductDTO findProductById(long id) {
         var productOptional = productRepository.findById(id);
-        return productOptional.map(ProductMapperDTO::mapToProductDTO);
+        return productOptional.map(ProductMapperDTO::mapToProductDTO)
+                .orElseThrow(() -> new ProductNotFoundException("Product Not Found By Id Exception"));
     }
 
     @Override
-    public Optional<ProductDTO> findProductByProductNameIgnoreCase(String productName) {
-        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findByNameIgnoreCase(productName)));
+    public ProductDTO findProductByProductNameIgnoreCase(String productName) {
+        return ProductMapperDTO.mapToProductDTO(productRepository.findByNameIgnoreCase(productName)
+                .orElseThrow(() -> new ProductNotFoundException("Product Not Found By Name Exception")));
     }
 
     @Override
-    public Optional<ProductDTO> findProductByNameAndPrice(String productName, double price) {
-        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findProductByNameAndPrice(productName, price)));
+    public ProductDTO findProductByNameAndPrice(String productName, double price) {
+        return ProductMapperDTO.mapToProductDTO(productRepository.findProductByNameAndPrice(productName, price)
+                .orElseThrow(() -> new ProductNotFoundException("Product Not Found By Name Exception")));
     }
 
     @Override
-    public Optional<ProductDTO> findMostPopularProductByYear(int year) {
-        return SearchForProductByDate.YEAR.findMostPopularProductByDate(year, productRepository.findAll());
+    public ProductDTO findMostPopularProductByYear(int year) {
+        return searchForProductByArg(SearchForProductByDate.YEAR, year, "No Product Found By Year");
     }
 
     @Override
-    public Optional<ProductDTO> findMostPopularProductByMonth(int month) {
-        return SearchForProductByDate.MONTH.findMostPopularProductByDate(month, productRepository.findAll());
+    public ProductDTO findMostPopularProductByMonth(int month) {
+        return searchForProductByArg(SearchForProductByDate.MONTH, month, "No Product Found By Month");
     }
 
     @Override
-    public Optional<ProductDTO> findMostUnPopularProductByYear(int year) {
-        return SearchForProductByDate.YEAR.findMostUnpopularProductByDate(year, productRepository.findAll());
+    public ProductDTO findMostUnPopularProductByYear(int year) {
+        return searchForUnpopularProductByArg(SearchForProductByDate.YEAR, year, "No Product Found By Year");
     }
 
     @Override
-    public Optional<ProductDTO> findMostUnPopularProductByMonth(int month) {
-        return SearchForProductByDate.MONTH.findMostUnpopularProductByDate(month, productRepository.findAll());
+    public ProductDTO findMostUnPopularProductByMonth(int month) {
+        return searchForUnpopularProductByArg(SearchForProductByDate.MONTH, month, "No UnProduct Found By Month");
     }
 
     @Override
-    public Optional<ProductDTO> findMostPopularProductByDay(int day) {
-        return SearchForProductByDate.DAY.findMostPopularProductByDate(day, productRepository.findAll());
+    public ProductDTO findMostPopularProductByDay(int day) {
+        return searchForProductByArg(SearchForProductByDate.DAY, day, "No Product Found By Day");
+    }
+
+    private ProductDTO searchForProductByArg(SearchForProductByDate searchForProductsByDate, int val, String arg) {
+        return searchForProductsByDate.findMostPopularProductByDate(val, productRepository.findAll())
+                .orElseThrow(() -> new ProductNotFoundException(arg));
     }
 
     @Override
-    public Optional<ProductDTO> findMostUnPopularProductByDay(int day) {
-        return SearchForProductByDate.DAY.findMostUnpopularProductByDate(day, productRepository.findAll());
+    public ProductDTO findMostUnPopularProductByDay(int day) {
+        return searchForUnpopularProductByArg(SearchForProductByDate.DAY, day, "No Unpopular Product Found By Day");
+    }
+
+    private ProductDTO searchForUnpopularProductByArg(SearchForProductByDate searchForProductsByDate, int val, String arg) {
+        return searchForProductsByDate.findMostUnpopularProductByDate(val, productRepository.findAll())
+                .orElseThrow(() -> new ProductNotFoundException(arg));
     }
 
     @Override
@@ -179,7 +201,7 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> product = productRepository.findById(id);
 
         if (product.isEmpty())
-            throw new ProductNotFound("Product not found");
+            throw new ProductNotFoundException("Product not found");
 
         if (!product.get().getProductState().equals(ProductState.SOLD)) {
             Product getProduct = product.get();
@@ -189,6 +211,4 @@ public class ProductServiceImpl implements ProductService {
         }
         return false;
     }
-
-
 }

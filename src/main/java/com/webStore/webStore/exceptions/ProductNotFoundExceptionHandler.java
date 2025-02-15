@@ -1,39 +1,38 @@
 package com.webStore.webStore.exceptions;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 
-@ControllerAdvice
+@RestControllerAdvice(annotations = RestController.class)
 public class ProductNotFoundExceptionHandler {
 
-    @ExceptionHandler(value = ProductNotFound.class)
-    public ResponseEntity<RequiredExceptionBody> handleProductNotFoundException(ProductNotFound productNotFound) {
+    @ExceptionHandler(value = ProductNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public RequiredExceptionResponse handleProductNotFoundException(ProductNotFoundException productNotFound, HttpServletRequest request) {
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
-        RequiredExceptionBody productNotFoundExceptionBody = setExceptionBody(productNotFound, httpStatus);
-
-        return new ResponseEntity<>(productNotFoundExceptionBody, httpStatus);
+        return setExceptionBody(productNotFound, httpStatus, request);
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)
-    public ResponseEntity<RequiredExceptionBody> handleIllegalArgumentException(IllegalArgumentException e) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public RequiredExceptionResponse handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-        RequiredExceptionBody productNotFoundExceptionBody = setExceptionBody(e, httpStatus);
-
-        return new ResponseEntity<>(productNotFoundExceptionBody, httpStatus);
+        return setExceptionBody(e, httpStatus, request);
     }
 
-    private RequiredExceptionBody setExceptionBody(RuntimeException e, HttpStatus status) {
-        return new RequiredExceptionBody(
+    private RequiredExceptionResponse setExceptionBody(RuntimeException e, HttpStatus status, HttpServletRequest statusRequest) {
+        return new RequiredExceptionResponse(
                 e.getMessage(),
                 status,
                 ZonedDateTime.now(ZoneOffset.UTC),
-                Arrays.toString(e.getStackTrace())
+                statusRequest.getRequestURI()
         );
     }
 }

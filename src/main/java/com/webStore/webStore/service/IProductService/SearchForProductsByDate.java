@@ -2,13 +2,11 @@ package com.webStore.webStore.service.IProductService;
 
 import com.webStore.webStore.dto.ProductDTO;
 
-import java.util.Optional;
-
 public interface SearchForProductsByDate {
-    Optional<ProductDTO> findMostPopularProductByYear(int year);
-    Optional<ProductDTO> findMostPopularProductByMonth(int category);
-    Optional<ProductDTO> findMostUnPopularProductByYear(int year);
-    Optional<ProductDTO> findMostUnPopularProductByMonth(int category);
-    Optional<ProductDTO> findMostPopularProductByDay(int day);
-    Optional<ProductDTO> findMostUnPopularProductByDay(int day);
+    ProductDTO findMostPopularProductByYear(int year);
+    ProductDTO findMostPopularProductByMonth(int category);
+    ProductDTO findMostUnPopularProductByYear(int year);
+    ProductDTO findMostUnPopularProductByMonth(int category);
+    ProductDTO findMostPopularProductByDay(int day);
+    ProductDTO findMostUnPopularProductByDay(int day);
 }

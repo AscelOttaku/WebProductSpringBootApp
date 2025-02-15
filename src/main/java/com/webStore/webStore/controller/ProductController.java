@@ -1,13 +1,12 @@
 package com.webStore.webStore.controller;
 
 import com.webStore.webStore.dto.ProductDTO;
-import com.webStore.webStore.exceptions.ProductNotFound;
+import com.webStore.webStore.exceptions.ProductNotFoundException;
 import com.webStore.webStore.service.IProductService.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,55 +26,37 @@ public class ProductController {
     }
 
     @GetMapping("/getProductById/{productId}")
-    public ResponseEntity<?> getProductById(@PathVariable long productId) {
-        var productDTO = productService.getProductById(productId);
-        return getProductDTOResponseEntity(productDTO, productId);
-    }
-
-    private static ResponseEntity<ProductDTO> getProductDTOResponseEntity(Optional<ProductDTO> productDTO) {
-        return productDTO.map(product -> new ResponseEntity<>(product, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    private static ResponseEntity<?> getProductDTOResponseEntity(Optional<ProductDTO> productDTO, long id) {
-        if (productDTO.isPresent())
-            return new ResponseEntity<>(productDTO.get(), HttpStatus.OK);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("find Product Request By Id", "Product with id " + id + " not found");
-        return new ResponseEntity<>(headers, HttpStatus.NOT_FOUND);
+    public ProductDTO getProductById(@PathVariable long productId) {
+        return productService.getProductById(productId);
     }
 
     @PostMapping("/addProduct")
-    public ResponseEntity<?> addProduct(@RequestBody @Valid ProductDTO productDTO) throws IllegalArgumentException {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addProduct(@RequestBody @Valid ProductDTO productDTO) throws IllegalArgumentException {
         productService.addProduct(productDTO);
-        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @GetMapping("/findMostPopularProduct")
-    public ResponseEntity<ProductDTO> findMostPopularProduct() {
-        var productDTO = productService.findMostPopularProduct();
-        return getProductDTOResponseEntity(productDTO);
+    public ProductDTO findMostPopularProduct() {
+        return productService.findMostPopularProduct();
     }
 
     @GetMapping("/findMostUnpopularProduct")
-    public ResponseEntity<ProductDTO> findMostUnpopularProduct() {
-        var productDTO = productService.findMostUnpopularProduct();
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findMostUnpopularProduct() {
+        return productService.findMostUnpopularProduct();
     }
 
     @GetMapping("/getAllProducts")
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-        var productsDTO = productService.getAllProducts();
-
-        return productsDTO.map(productDTOS -> new ResponseEntity<>(productDTOS, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public List<ProductDTO> getAllProducts() {
+        return productService.getAllProducts();
     }
 
     @GetMapping("/findProductByArrivedDate/{arrivedDateTime}")
-    public ResponseEntity<ProductDTO> findProductArrivedByDate(@PathVariable LocalDateTime arrivedDateTime) {
-        var productDTO = productService.findProductByArrivedProductDate(arrivedDateTime);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findProductArrivedByDate(@PathVariable LocalDateTime arrivedDateTime) {
+        return productService.findProductByArrivedProductDate(arrivedDateTime);
     }
 
     @GetMapping("/getTotalSumOfSoldProducts")
@@ -84,69 +65,69 @@ public class ProductController {
     }
 
     @GetMapping("/findProductBySoldDate/{soldDateTime}")
-    public ResponseEntity<ProductDTO> findProductBySoldDate(@PathVariable LocalDateTime soldDateTime) {
-        var productDTO = productService.findProductByProductBySoldDate(soldDateTime);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findProductBySoldDate(@PathVariable LocalDateTime soldDateTime) {
+        return productService.findProductByProductSoldDate(soldDateTime);
     }
 
     @PutMapping("/updateProduct")
-    public ResponseEntity<String> updateProduct(@RequestBody @Valid ProductDTO productDTO) throws ProductNotFound {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateProduct(@RequestBody @Valid ProductDTO productDTO) throws ProductNotFoundException {
         productService.updateProduct(productDTO);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/deleteProduct/{id}")
-    public ResponseEntity<String> deleteProductById(@PathVariable long id) throws ProductNotFound {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProductById(@PathVariable long id) throws ProductNotFoundException {
         productService.deleteProductById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/deleteProduct")
-    public ResponseEntity<String> deleteProduct(@RequestBody @Valid ProductDTO productDTO) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(@RequestBody @Valid ProductDTO productDTO) {
         productService.deleteProduct(productDTO);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/findProductByName")
-    public ResponseEntity<ProductDTO> findProductByName(@RequestParam String productName) {
-        var productDTO = productService.findProductByProductNameIgnoreCase(productName);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findProductByName(@RequestParam String productName) {
+        return productService.findProductByProductNameIgnoreCase(productName);
     }
 
     @GetMapping("/findMostPopularProductByYear/{productYear}")
-    public ResponseEntity<ProductDTO> findMostPopularProductByYear(@PathVariable int productYear) {
-        var productDTO = productService.findMostPopularProductByYear(productYear);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findMostPopularProductByYear(@PathVariable int productYear) {
+        return productService.findMostPopularProductByYear(productYear);
     }
 
     @GetMapping("/findMostPopularProductByMonth/{productMonth}")
-    public ResponseEntity<ProductDTO> findMostPopularProductByMonth(@PathVariable int productMonth) {
-        var productDTO = productService.findMostPopularProductByMonth(productMonth);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findMostPopularProductByMonth(@PathVariable int productMonth) {
+        return productService.findMostPopularProductByMonth(productMonth);
     }
 
     @GetMapping("/findMostUnPopularProductByYear/{productYear}")
-    public ResponseEntity<ProductDTO> findMostUnPopularProductByYear(@PathVariable int productYear) {
-        var productDTO = productService.findMostUnPopularProductByYear(productYear);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findMostUnPopularProductByYear(@PathVariable int productYear) {
+        return productService.findMostUnPopularProductByYear(productYear);
     }
 
     @GetMapping("/findMostUnpopularProductByMonth/{productMonth}")
-    public ResponseEntity<ProductDTO> findMostUnpopularProductByMonth(@PathVariable int productMonth) {
-        var productDTO = productService.findMostUnPopularProductByMonth(productMonth);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findMostUnpopularProductByMonth(@PathVariable int productMonth) {
+        return productService.findMostUnPopularProductByMonth(productMonth);
     }
 
     @GetMapping("/findMostPopularProductByDay/{productDay}")
-    public ResponseEntity<ProductDTO> findMostPopularProductByDay(@PathVariable int productDay) {
-        var productDTO = productService.findMostPopularProductByDay(productDay);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findMostPopularProductByDay(@PathVariable int productDay) {
+        return productService.findMostPopularProductByDay(productDay);
     }
 
     @GetMapping("/findMostUnpopularPopularProductByDay/{productDay}")
-    public ResponseEntity<ProductDTO> findMostUnPopularProductByDay(@PathVariable int productDay) {
-        var productDTO = productService.findMostUnPopularProductByDay(productDay);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findMostUnPopularProductByDay(@PathVariable int productDay) {
+        return productService.findMostUnPopularProductByDay(productDay);
     }
 
     @PatchMapping("/updateProductState/{productId}")
@@ -158,9 +139,9 @@ public class ProductController {
     }
 
     @GetMapping("/findProductByNameAndPrice")
-    public ResponseEntity<ProductDTO> findProductByNameAndPrice(@RequestParam @NotNull
-                                                                    @Min(3) String productName, @RequestParam @NotNull double price) {
-        var productDTO = productService.findProductByNameAndPrice(productName, price);
-        return getProductDTOResponseEntity(productDTO);
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO findProductByNameAndPrice(@RequestParam @NotNull @Min(3) String productName,
+                                                @RequestParam @NotNull double price) {
+        return productService.findProductByNameAndPrice(productName, price);
     }
 }

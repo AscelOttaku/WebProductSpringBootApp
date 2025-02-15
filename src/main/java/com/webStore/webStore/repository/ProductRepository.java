@@ -4,10 +4,11 @@ import com.webStore.webStore.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    Product findProductByArrivedAtStoreTime(LocalDateTime localDateTime);
-    Product findProductBySoldAtStoreTime(LocalDateTime localDateTime);
-    Product findByNameIgnoreCase(String productName);
-    Product findProductByNameAndPrice(String productName, double price);
+    Optional<Product> findProductByArrivedAtStoreTime(LocalDateTime localDateTime);
+    Optional<Product> findProductBySoldAtStoreTime(LocalDateTime localDateTime);
+    Optional<Product> findByNameIgnoreCase(String productName);
+    Optional<Product> findProductByNameAndPrice(String productName, double price);
 }

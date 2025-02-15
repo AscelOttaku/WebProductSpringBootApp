@@ -23,7 +23,7 @@ public class ProductViewController {
 
     @GetMapping("/getAllTheProductsByPage")
     public String getAllTheProductsByPage(Model model) {
-        Optional<List<ProductDTO>> productDTOS = productService.getAllProducts();
+        List<ProductDTO> productDTOS = productService.getAllProducts();
         model.addAttribute("products", productDTOS);
         return "products-list";
     }
