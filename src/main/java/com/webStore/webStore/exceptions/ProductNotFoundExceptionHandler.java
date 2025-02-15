@@ -33,7 +33,6 @@ public class ProductNotFoundExceptionHandler {
                 e.getMessage(),
                 status,
                 ZonedDateTime.now(ZoneOffset.UTC),
-                e,
                 Arrays.toString(e.getStackTrace())
         );
     }
