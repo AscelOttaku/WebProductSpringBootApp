@@ -1,7 +1,7 @@
 package com.webStore.webStore.controller;
 
 import com.webStore.webStore.dto.ProductDTO;
-import com.webStore.webStore.exceptions.ProductNotFound;
+import com.webStore.webStore.exceptions.ProductNotFoundException;
 import com.webStore.webStore.service.IProductService.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -34,7 +34,7 @@ public class ProductController {
 
     private static ResponseEntity<ProductDTO> getProductDTOResponseEntity(Optional<ProductDTO> productDTO) {
         return productDTO.map(product -> new ResponseEntity<>(product, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .orElseThrow(ProductNotFoundException::new);
     }
 
     private static ResponseEntity<?> getProductDTOResponseEntity(Optional<ProductDTO> productDTO, long id) {
@@ -90,13 +90,13 @@ public class ProductController {
     }
 
     @PutMapping("/updateProduct")
-    public ResponseEntity<String> updateProduct(@RequestBody @Valid ProductDTO productDTO) throws ProductNotFound {
+    public ResponseEntity<String> updateProduct(@RequestBody @Valid ProductDTO productDTO) throws ProductNotFoundException {
         productService.updateProduct(productDTO);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/deleteProduct/{id}")
-    public ResponseEntity<String> deleteProductById(@PathVariable long id) throws ProductNotFound {
+    public ResponseEntity<String> deleteProductById(@PathVariable long id) throws ProductNotFoundException {
         productService.deleteProductById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

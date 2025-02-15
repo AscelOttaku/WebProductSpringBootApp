@@ -1,7 +1,7 @@
 package com.webStore.webStore.service.impl;
 
 import com.webStore.webStore.dto.ProductDTO;
-import com.webStore.webStore.exceptions.ProductNotFound;
+import com.webStore.webStore.exceptions.ProductNotFoundException;
 import com.webStore.webStore.model.Product;
 import com.webStore.webStore.model.ProductState;
 import com.webStore.webStore.repository.ProductRepository;
@@ -62,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
         var product = productRepository.findById(id);
 
         if (product.isEmpty())
-            throw new ProductNotFound("Product by id " + id + " is not found");
+            throw new ProductNotFoundException("Product by id " + id + " is not found");
     }
 
     @Override
@@ -123,7 +123,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteProductById(long id) throws ProductNotFound {
+    public void deleteProductById(long id) throws ProductNotFoundException {
         productIsNotFound(id);
         productRepository.deleteById(id);
     }
@@ -179,7 +179,7 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> product = productRepository.findById(id);
 
         if (product.isEmpty())
-            throw new ProductNotFound("Product not found");
+            throw new ProductNotFoundException("Product not found");
 
         if (!product.get().getProductState().equals(ProductState.SOLD)) {
             Product getProduct = product.get();
