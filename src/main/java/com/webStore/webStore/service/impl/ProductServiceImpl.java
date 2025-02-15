@@ -59,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void productIsNotFound(long id) {
-        Optional<Product> product = productRepository.findById(id);
+        var product = productRepository.findById(id);
 
         if (product.isEmpty())
             throw new ProductNotFound("Product by id " + id + " is not found");
@@ -140,6 +140,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Optional<ProductDTO> findProductByNameAndPrice(String productName, double price) {
+        return Optional.ofNullable(ProductMapperDTO.mapToProductDTO(productRepository.findProductByNameAndPrice(productName, price)));
+    }
+
+    @Override
     public Optional<ProductDTO> findMostPopularProductByYear(int year) {
         return SearchForProductByDate.YEAR.findMostPopularProductByDate(year, productRepository.findAll());
     }
@@ -184,4 +189,6 @@ public class ProductServiceImpl implements ProductService {
         }
         return false;
     }
+
+
 }

@@ -3,16 +3,13 @@ package com.webStore.webStore.model;
 public enum ProductState {
     SOLD {
         @Override
-        public boolean buyProduct(Product product) {
-            return false;
-        }
+        public void buyProduct(Product product) {}
     }, IN_STORE {
         @Override
-        public boolean buyProduct(Product product) {
+        public void buyProduct(Product product) {
             product.setProductState(SOLD);
-            return true;
         }
     };
 
-    public abstract boolean buyProduct(Product product);
+    public abstract void buyProduct(Product product);
 }

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class ProductDTO {
     private long id;
-    @NotBlank(message = "Field name name is Blank")
+    @NotBlank(message = "Field name is Blank")
     @Size(min = 3)
     private String name;
     @PositiveOrZero(message = "Filed name price should be positive")

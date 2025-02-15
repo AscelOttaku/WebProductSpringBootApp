@@ -12,7 +12,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.counting;
-
 public enum SearchForProductByDate {
     MONTH {
         @Override

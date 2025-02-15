@@ -9,4 +9,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Product findProductByArrivedAtStoreTime(LocalDateTime localDateTime);
     Product findProductBySoldAtStoreTime(LocalDateTime localDateTime);
     Product findByNameIgnoreCase(String productName);
+    Product findProductByNameAndPrice(String productName, double price);
 }

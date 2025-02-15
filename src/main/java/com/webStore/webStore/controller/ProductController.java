@@ -4,6 +4,8 @@ import com.webStore.webStore.dto.ProductDTO;
 import com.webStore.webStore.exceptions.ProductNotFound;
 import com.webStore.webStore.service.IProductService.ProductService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -45,12 +47,8 @@ public class ProductController {
     }
 
     @PostMapping("/addProduct")
-    public ResponseEntity<?> addProduct(@RequestBody @Valid ProductDTO productDTO) {
-        try {
-            productService.addProduct(productDTO);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> addProduct(@RequestBody @Valid ProductDTO productDTO) throws IllegalArgumentException {
+        productService.addProduct(productDTO);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -92,32 +90,20 @@ public class ProductController {
     }
 
     @PutMapping("/updateProduct")
-    public ResponseEntity<String> updateProduct(@RequestBody @Valid ProductDTO productDTO) {
-        try {
-            productService.updateProduct(productDTO);
-        } catch (ProductNotFound productNotFound) {
-            return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<String> updateProduct(@RequestBody @Valid ProductDTO productDTO) throws ProductNotFound {
+        productService.updateProduct(productDTO);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/deleteProduct/{id}")
-    public ResponseEntity<String> deleteProductById(@PathVariable long id) {
-       try {
-           productService.deleteProductById(id);
-       } catch (ProductNotFound productNotFound) {
-           return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
-       }
-       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<String> deleteProductById(@PathVariable long id) throws ProductNotFound {
+        productService.deleteProductById(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/deleteProduct")
     public ResponseEntity<String> deleteProduct(@RequestBody @Valid ProductDTO productDTO) {
-        try {
-            productService.deleteProduct(productDTO);
-        } catch (ProductNotFound productNotFound) {
-            return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        productService.deleteProduct(productDTO);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -165,13 +151,16 @@ public class ProductController {
 
     @PatchMapping("/updateProductState/{productId}")
     public ResponseEntity<String> updateProductState(@PathVariable long productId) {
-        try {
-            if (productService.buy(productId))
-                return new ResponseEntity<>("Product is updated", HttpStatus.OK);
-            else
-                return new ResponseEntity<>("Product is already sold", HttpStatus.OK);
-        } catch (ProductNotFound productNotFound) {
-            return new ResponseEntity<>(productNotFound.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        if (productService.buy(productId))
+            return new ResponseEntity<>("Product is updated", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Product is already sold", HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/findProductByNameAndPrice")
+    public ResponseEntity<ProductDTO> findProductByNameAndPrice(@RequestParam @NotNull
+                                                                    @Min(3) String productName, @RequestParam @NotNull double price) {
+        var productDTO = productService.findProductByNameAndPrice(productName, price);
+        return getProductDTOResponseEntity(productDTO);
     }
 }

@@ -13,4 +13,5 @@ public interface SearchProduct {
     double getTotalEarnedPrice();
     Optional<ProductDTO> findProductByProductBySoldDate(LocalDateTime localDateTime);
     Optional<ProductDTO> findProductByProductNameIgnoreCase(String productName);
+    Optional<ProductDTO> findProductByNameAndPrice(String productName, double price);
 }
